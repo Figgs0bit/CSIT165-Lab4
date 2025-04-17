@@ -1,30 +1,100 @@
 ---
-title: "CSIT165_Lab4"
-author: "SAF"
+title: "Lab 4: 2019 Novel Coronavirus"
+author: "Name: Sal Figueroa"
 date: "`r Sys.Date()`"
-output: pdf_document
+output: 
+  pdf_document:
+    toc: true
+    toc_depth: 3
+header-includes:
+#These packages are not necessary to complete the assignment and or only used to provide an example. 
+  - \usepackage{booktabs}
+  - \usepackage{longtable}
+  - \usepackage{array}
+  - \usepackage{multirow}
+  - \usepackage{wrapfig}
+  - \usepackage{float}
+  - \usepackage{colortbl}
+  - \usepackage{pdflscape}
+#  - \usepackage{tabu}  #when tabu package enabled PDF won't knit
+  - \usepackage{threeparttable}
+  - \usepackage{threeparttablex}
+  - \usepackage[normalem]{ulem}
+  - \usepackage{makecell}
+  - \usepackage{xcolor}
+
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup, include = FALSE}
+#### Load necessary library ####
+packages <- c("knitr", "kableExtra", "magrittr", "readr", "geosphere")
+
+install_me <- packages[!(packages %in% installed.packages()[, "Package"])]
+if (length(install_me)) install.packages(install_me)
+
+library(knitr)
+#library(kableExtra) #when kablextra library enabled PDF won't knit
+library(magrittr)
+library(readr)
+library(geosphere)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r Data setup, include = FALSE}
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+#time_series_covid19_recovered_global.csv
+#recovered_global <- as.data.frame(read.csv("https://raw.githubusercontent.com/Figgs0bit/CSIT165-CovidGroupProj/refs/heads/main/time_series_covid19_recovered_global.csv"))
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+## Required data sets
+
+[2019 Novel Coronavirus COVID-19 (2019-nCoV) Data Repository by John Hopkins CSSE](https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series)
+
+2019 Novel Coronavirus COVID-19 (2019-nCoV) Data Repository by John Hopkins CSSE
+The following data set is operated by the John Hopkins University Center for Systems Science and Engineering (JHU CSSE). Data sets include daily time series CSV summary tables for confirmations and deaths associated with COVID-19. Lat and Long refer to coordinate references for the data field. Date fields are stored in MM/DD/YYYY format.
+For this laboratory, we will be use confirmed and deaths data sets for the US.
+
+
+## Project Objectives
+
+Before beginning your objectives in your final document, please state which day you downloaded the data sets on for analysis. For this laboratory, use the packages described in Module 10 and 11 to accomplish each objective where appropriate.
+
+The surgeon general for the United States recently created a new data science initiative, CSIT-165, that uses data science to characterize pandemic diseases. CSIT-165 disseminates data driven analyses to state governors. You are a data scientist for CSIT-165 and it is up to you and you alone to manipulate and visualize COVID-19 data for disease control.
+
+
+### Objective 1
+*Which state has the most confirmed cases of COVID-19? Which state has the most deaths?*
+```{r ob1}
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+### Objective 2
+*Create a new table called current_tally by merging confirmed and deaths containing only the columns iso2, Province_State, Admin2, Lat, Long_, and today’s count for confirmed and deaths. Rename current_tally’s columns as Country, State, City, Lat, Long, Confirmed, and Deaths respectively. Filter current_tally for data points where the country is the US. Please print current_tally as a tibble.*
+```{r ob2}
+
+```
+
+
+### Objective 3
+*In current_tally, create a new variable, unaccounted, as the absolute difference between confirmed and deaths for each city. Determine the number of unaccounted for each state using grouped operation.*
+```{r ob3}
+
+```
+
+
+
+### Objective 4
+*Using the package kable, create a table showing the top 5 unnacounted states.*
+```{r ob4}
+
+```
+
+
+### Objective 5
+*Create any visualization you like using the data sets used in this laboratory. Provide your visualization with a title and custom axis labels. Describe how this visualization conveys information that is not readily apparent from looking at the data alone.*
+```{r ob5}
+
+```
