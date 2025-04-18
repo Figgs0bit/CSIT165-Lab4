@@ -22,7 +22,7 @@ header-includes:
   - \usepackage[normalem]{ulem}
   - \usepackage{makecell}
   - \usepackage{xcolor}
-  - \usepackage{kable}
+#  - \usepackage{kable}
 
 ---
 
@@ -198,7 +198,7 @@ current_tally <- Confirmed_US %>%
 current_tally <- tibble(current_tally)
 #current_tally <- data.table(current_tally)
 
-print(current_tally)
+#print(current_tally)
 #View(current_tally)
 ```
 
@@ -229,10 +229,10 @@ current_tally %>%
 *Using the package kable, create a table showing the top 5 unnacounted states.*
 ```{r ob4}
 
-#current_tally %>%
-        #group_by(X3.9.23.x, X3.9.23.y) %>%
-        #summarize(unaccounted = abs(X3.9.23.x - X3.9.23.y))  
-        #arrange(desc(unaccounted))
+current_tally %>%
+        group_by(X3.9.23.x, X3.9.23.y) %>%
+        summarize(unaccounted = abs(X3.9.23.x - X3.9.23.y))  
+
         
 #knitr::kable(current_tally, "pipe", align=c("l","c","c")) 
         
