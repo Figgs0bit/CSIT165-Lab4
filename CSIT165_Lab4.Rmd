@@ -41,18 +41,25 @@ library(geosphere)
 
 
 ```{r Data setup, include = FALSE}
+#time_series_covid19_confirmed_US.csv
+Confirmed_US <- as.data.frame(read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/refs/heads/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv"))
 
-#time_series_covid19_recovered_global.csv
-#recovered_global <- as.data.frame(read.csv("https://raw.githubusercontent.com/Figgs0bit/CSIT165-CovidGroupProj/refs/heads/main/time_series_covid19_recovered_global.csv"))
+#time_series_covid19_deaths_US.csv
+Deaths_US <- as.data.frame(read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/refs/heads/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv"))
 ```
 
+
+## Github Repository
+*Holds all related files*
+
+[github: Figgs0bit-Lab4](https://github.com/Figgs0bit/CSIT165-Lab4.git)
 
 
 ## Required data sets
 
 [2019 Novel Coronavirus COVID-19 (2019-nCoV) Data Repository by John Hopkins CSSE](https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series)
 
-2019 Novel Coronavirus COVID-19 (2019-nCoV) Data Repository by John Hopkins CSSE
+
 The following data set is operated by the John Hopkins University Center for Systems Science and Engineering (JHU CSSE). Data sets include daily time series CSV summary tables for confirmations and deaths associated with COVID-19. Lat and Long refer to coordinate references for the data field. Date fields are stored in MM/DD/YYYY format.
 For this laboratory, we will be use confirmed and deaths data sets for the US.
 
