@@ -22,6 +22,7 @@ header-includes:
   - \usepackage[normalem]{ulem}
   - \usepackage{makecell}
   - \usepackage{xcolor}
+  - \usepackage{kable}
 
 ---
 
@@ -33,26 +34,32 @@ install_me <- packages[!(packages %in% installed.packages()[, "Package"])]
 if (length(install_me)) install.packages(install_me)
 
 library(knitr)
-#library(kableExtra) #when kablextra library enabled PDF won't knit
 library(magrittr)
 library(readr)
 library(geosphere)
+library(dplyr)
+library(tidyverse)
+library(data.table)
+#library(kableExtra) #when kablextra library enabled PDF won't knit
+
+
+knitr::opts_chunk$set(echo=TRUE)
+
 ```
 
 
 ```{r Data setup, include = FALSE}
-#time_series_covid19_confirmed_US.csv
+#time_series_covid19_confirmed_US.csv 1154 columns
 Confirmed_US <- as.data.frame(read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/refs/heads/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv"))
 
-rowmax_Conf <- nrow(Confirmed_US[,]) #limit Qty of Rows 289
-colmax_Conf <- ncol(Confirmed_US[,]) #limit Qty of Rows 289
-
-#time_series_covid19_deaths_US.csv
+#time_series_covid19_deaths_US.csv 1155 columns
 Deaths_US <- as.data.frame(read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/refs/heads/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv"))
 
+popCounties <- Deaths_US[12]
+Deaths_US <- Deaths_US[, -which(names(Deaths_US) == "Population")]
 
-rowmax_Deaths <- nrow(Deaths_US[,]) #limit Qty of Rows 289
-colmax_Deaths <- ncol(Deaths_US[,]) #limit Qty of Rows 289
+rowmax <- nrow(Confirmed_US[,]) #limit Qty of Rows 289
+colmax <- ncol(Confirmed_US[,]) #limit Qty of Rows 289
 
 #cat("Test VAR - Confirmed:",rowmax_Conf,",",colmax_Conf,", Deaths:",rowmax_Deaths,",",colmax_Deaths,"\n")
 ```
@@ -104,12 +111,16 @@ V_USdeaths <- c() #Will Hold all entries of confirmed_US
 
 sumC <- 0 #resets confirmed_global Sum C after each country multiple
 sumD <- 0 #resets deaths_global Sum D after each country multiple
+CountyCol <- 7 
 
 
+#creates a data frame with country and either deaths_global, confirmed_global values.
+df_comfirmed <- c()
+df_deaths <- c()
 #Data is broken down by county or territory, script must now sort and consolidate common states. 
 #The following if else ladder sorts and filters the duplicate
 #-counties and combines the data for a common region.
-for(j in 1:rowmax_Conf) #Iterate through rows 3342  
+for(j in 1:rowmax) #Iterate through rows 3342  
 {
   #first if conditional is need as the the first row will
   #-not fall through the remaining if statements.
@@ -118,54 +129,60 @@ for(j in 1:rowmax_Conf) #Iterate through rows 3342
   if(j == 1) 
     { 
       #Adds the incremented value into each respective vector
-      V_State <- c(V_State, Confirmed_US[j,colmax_Deaths])#adds State or territory  
-      V_USconfirmed <- c(V_USconfirmed, Confirmed_US[j,colmax_Conf])#adds US confirmed
-      V_USdeaths <- c(V_USdeaths, Deaths_US[j,colmax_Deaths])#adds US Deaths
+      V_State <- c(V_State, Confirmed_US[j,CountyCol])#adds State or territory  
+      V_USconfirmed <- c(V_USconfirmed, Confirmed_US[j,colmax])#adds US confirmed
+      V_USdeaths <- c(V_USdeaths, Deaths_US[j,colmax])#adds US Deaths
       
     }
   #The following (2) else if statements test and sort through duplicate country 
   #-entries and then sums them together, respectively. 
-  else if(Confirmed_US[j,7] %in% Confirmed_US[j+1,7])#conditional for strings
+  else if(Confirmed_US[j,CountyCol] %in% Confirmed_US[j+1,CountyCol])#conditional for strings
     {
       #When a duplicate country entry is encountered values
       #-are summed up for Confirmed and death cases
-      sumC <- sumC + Confirmed_US[j,colmax_Conf]
-      sumD <- sumD + Deaths_US[j,colmax_Deaths]
+      sumC <- sumC + Confirmed_US[j,colmax]
+      sumD <- sumD + Deaths_US[j,colmax]
       
     }
   #conditional statement for strings
-  else if((Confirmed_US[j,7] %in% Confirmed_US[j-1,7]) && (!(Confirmed_US[j,7]) %in% Confirmed_US[j+1,7]))  
+  else if((Confirmed_US[j,CountyCol] %in% Confirmed_US[j-1,CountyCol]) && (!(Confirmed_US[j,CountyCol]) %in% Confirmed_US[j+1,CountyCol]))  
     { 
       #When a duplicate country entry is encountered values
       #-are summed up for Confirmed and death cases
-      sumC <- sumC + Confirmed_US[j,colmax_Conf]
-      sumD <- sumD + Deaths_US[j,colmax_Deaths]
+      sumC <- sumC + Confirmed_US[j,colmax]
+      sumD <- sumD + Deaths_US[j,colmax]
     
       #loads the shorten results with the common countries combined
-      V_State <- c(V_State, Confirmed_US[j,colmax_Deaths])#adds State or territory  
+      V_State <- c(V_State, Confirmed_US[j,CountyCol])#adds State or territory  
       V_USconfirmed <- c(V_USconfirmed, sumC)#adds US confirmed
       V_USdeaths <- c(V_USdeaths, sumD)#adds US Deaths
     
       #resets the following sum variables to zero for the next duplicate country 
       sumC <- 0
       sumD <- 0
-      cat("c Flag\n")
+      
     }
   #The last else statement is where countries without duplicates are loaded
   else
     {
       #adds deaths_global, confirmed_global to new vectors 
-      V_State <- c(V_State, Confirmed_US[j,colmax_Deaths])#adds State or territory  
-      V_USconfirmed <- c(V_USconfirmed, Confirmed_US[j,colmax_Conf])#adds US confirmed
-      V_USdeaths <- c(V_USdeaths, Deaths_US[j,colmax_Deaths])#adds US Deaths
-      cat("d Flag\n")
+      V_State <- c(V_State, Confirmed_US[j,CountyCol])#adds State or territory  
+      V_USconfirmed <- c(V_USconfirmed, Confirmed_US[j,colmax])#adds US confirmed
+      V_USdeaths <- c(V_USdeaths, Deaths_US[j,colmax])#adds US Deaths
+    
     }
   
-cat("j",j,"Flag\n")  
 }
+#creates and loads data frame with the shorten and consolidated vectors 
+df_comfirmed <- data.frame(V_State, V_USconfirmed)
+df_deaths <- data.frame(V_State, V_USdeaths)
 
-cat("End Flag\n")
+#Reorders the Data-frame in decreasing order
+df_C_decreasing <- df_comfirmed[order(df_comfirmed$V_USconfirmed, decreasing = TRUE),] 
+df_D_decreasing <- df_deaths[order(df_deaths$V_USdeaths, decreasing = TRUE),]
 
+#View(df_C_decreasing)
+#View(df_D_decreasing)
 
 ```
 
@@ -173,13 +190,36 @@ cat("End Flag\n")
 ### Objective 2
 *Create a new table called current_tally by merging confirmed and deaths containing only the columns iso2, Province_State, Admin2, Lat, Long_, and today’s count for confirmed and deaths. Rename current_tally’s columns as Country, State, City, Lat, Long, Confirmed, and Deaths respectively. Filter current_tally for data points where the country is the US. Please print current_tally as a tibble.*
 ```{r ob2}
+#current_tally <- rbind(Confirmed_US, Deaths_US)
 
+current_tally <- Confirmed_US %>%
+                 merge(Deaths_US, by = c("iso2", "Province_State", "Admin2", "Lat", "Long_", "X2.29.20"))
+
+current_tally <- tibble(current_tally)
+#current_tally <- data.table(current_tally)
+
+print(current_tally)
+#View(current_tally)
 ```
 
 
 ### Objective 3
 *In current_tally, create a new variable, unaccounted, as the absolute difference between confirmed and deaths for each city. Determine the number of unaccounted for each state using grouped operation.*
 ```{r ob3}
+#print(colnames(current_tally))
+
+#current_tally <- current_tally %>%
+#  mutate(unaccounted = X3.9.23.x - X3.9.23.y)
+
+
+#current_tally %>% relocate(unaccounted)
+
+#View(current_tally)
+
+current_tally %>%
+        group_by(X3.9.23.x, X3.9.23.y) %>%
+        summarize(unaccounted = abs(X3.9.23.x - X3.9.23.y))  
+
 
 ```
 
@@ -189,11 +229,23 @@ cat("End Flag\n")
 *Using the package kable, create a table showing the top 5 unnacounted states.*
 ```{r ob4}
 
+#current_tally %>%
+        #group_by(X3.9.23.x, X3.9.23.y) %>%
+        #summarize(unaccounted = abs(X3.9.23.x - X3.9.23.y))  
+        #arrange(desc(unaccounted))
+        
+#knitr::kable(current_tally, "pipe", align=c("l","c","c")) 
+        
+        
+
 ```
 
 
 ### Objective 5
 *Create any visualization you like using the data sets used in this laboratory. Provide your visualization with a title and custom axis labels. Describe how this visualization conveys information that is not readily apparent from looking at the data alone.*
 ```{r ob5}
+
+
+
 
 ```
