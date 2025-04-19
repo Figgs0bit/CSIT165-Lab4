@@ -22,6 +22,7 @@ header-includes:
   - \usepackage[normalem]{ulem}
   - \usepackage{makecell}
   - \usepackage{xcolor}
+#  - \usepackage{tidyverse}
 #  - \usepackage{kable}
 
 ---
@@ -37,8 +38,13 @@ library(knitr)
 library(magrittr)
 library(readr)
 library(geosphere)
-library(dplyr)
+library(ggplot2)
+library(treemapify)
 library(tidyverse)
+#library(plyr)
+
+library(dplyr)
+
 library(data.table)
 #library(kableExtra) #when kablextra library enabled PDF won't knit
 
@@ -178,8 +184,8 @@ df_comfirmed <- data.frame(V_State, V_USconfirmed)
 df_deaths <- data.frame(V_State, V_USdeaths)
 
 #Reorders the Data-frame in decreasing order
-df_C_decreasing <- df_comfirmed[order(df_comfirmed$V_USconfirmed, decreasing = TRUE),] 
-df_D_decreasing <- df_deaths[order(df_deaths$V_USdeaths, decreasing = TRUE),]
+#df_C_decreasing <- df_comfirmed[order(df_comfirmed$V_USconfirmed, decreasing = TRUE),] 
+#df_D_decreasing <- df_deaths[order(df_deaths$V_USdeaths, decreasing = TRUE),]
 
 #View(df_C_decreasing)
 #View(df_D_decreasing)
@@ -190,53 +196,45 @@ df_D_decreasing <- df_deaths[order(df_deaths$V_USdeaths, decreasing = TRUE),]
 ### Objective 2
 *Create a new table called current_tally by merging confirmed and deaths containing only the columns iso2, Province_State, Admin2, Lat, Long_, and today’s count for confirmed and deaths. Rename current_tally’s columns as Country, State, City, Lat, Long, Confirmed, and Deaths respectively. Filter current_tally for data points where the country is the US. Please print current_tally as a tibble.*
 ```{r ob2}
-#current_tally <- rbind(Confirmed_US, Deaths_US)
+#current_tally <- Confirmed_US %>%
+#                 merge(Deaths_US, by = c("iso2", "Province_State", "Admin2", "Lat", "Long_", "X2.29.20"))
 
-current_tally <- Confirmed_US %>%
-                 merge(Deaths_US, by = c("iso2", "Province_State", "Admin2", "Lat", "Long_", "X2.29.20"))
-
+current_tally <- cbind(Confirmed_US[2],Confirmed_US[7],Confirmed_US[6],Confirmed_US[9],Confirmed_US[10],Confirmed_US[colmax], Deaths_US[colmax])
+colnames(current_tally) <- c("Country","State","City","Lat","Long","Confirmed","Deaths")
 current_tally <- tibble(current_tally)
-#current_tally <- data.table(current_tally)
-
 #print(current_tally)
-#View(current_tally)
 ```
 
 
 ### Objective 3
 *In current_tally, create a new variable, unaccounted, as the absolute difference between confirmed and deaths for each city. Determine the number of unaccounted for each state using grouped operation.*
 ```{r ob3}
-#print(colnames(current_tally))
 
-#current_tally <- current_tally %>%
-#  mutate(unaccounted = X3.9.23.x - X3.9.23.y)
-
-
-#current_tally %>% relocate(unaccounted)
-
-#View(current_tally)
-
-current_tally %>%
-        group_by(X3.9.23.x, X3.9.23.y) %>%
-        summarize(unaccounted = abs(X3.9.23.x - X3.9.23.y))  
-
+current_tally <- current_tally %>%
+        mutate('unaccounted' = abs(Confirmed - Deaths))
+        
+unaccounted_tally <- current_tally %>%
+        group_by(State) %>%
+        summarise(Total_unaccounted = sum(unaccounted))
 
 ```
 
 
 
+
+using the code above, use the package kable and create a table showing the top 5 state with the most Total_unaccounted values
+
 ### Objective 4
-*Using the package kable, create a table showing the top 5 unnacounted states.*
+*Using the package kable, create a table showing the top 5 unaccounted states.*
 ```{r ob4}
+# Display the top 5 states
 
-current_tally %>%
-        group_by(X3.9.23.x, X3.9.23.y) %>%
-        summarize(unaccounted = abs(X3.9.23.x - X3.9.23.y))  
+top5_unaccounted <- unaccounted_tally[order(unaccounted_tally$Total_unaccounted, decreasing = TRUE),] 
 
-        
-#knitr::kable(current_tally, "pipe", align=c("l","c","c")) 
-        
-        
+top5_unaccounted <- head(top5_unaccounted, 5)
+
+kable(top5_unaccounted, caption = "Top 5 States by Total Unaccounted COVID Cases")
+
 
 ```
 
@@ -245,6 +243,25 @@ current_tally %>%
 *Create any visualization you like using the data sets used in this laboratory. Provide your visualization with a title and custom axis labels. Describe how this visualization conveys information that is not readily apparent from looking at the data alone.*
 ```{r ob5}
 
+# Use built-in dataset: state.x77
+state_data <- as.data.frame(state.x77)
+
+# Add state names as a column
+state_data$State <- rownames(state_data)
+
+# Preview data
+head(state_data)
+
+
+
+treemap(state_data,
+        index = "State",             # Label by state
+        vSize = "Population",        # Size by population
+        title = "Population of U.S. States",
+        palette = "Blues",           # Color scheme
+        border.col = "white",        # Border color
+        fontsize.labels = 12,
+        fontcolor.labels = "black")
 
 
 
