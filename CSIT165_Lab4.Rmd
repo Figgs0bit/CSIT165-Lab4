@@ -34,6 +34,7 @@ packages <- c("knitr", "kableExtra", "magrittr", "readr", "geosphere")
 install_me <- packages[!(packages %in% installed.packages()[, "Package"])]
 if (length(install_me)) install.packages(install_me)
 
+#library(gridextra)
 library(knitr)
 library(magrittr)
 library(readr)
@@ -45,6 +46,7 @@ library(ggfittext)
 library(scales)
 library(dplyr)
 library(data.table)
+#library(ggnewscale)
 #library(kableExtra) #when kablextra library enabled PDF won't knit
 #library(ggtext)
 #library(treemap)
@@ -273,22 +275,46 @@ view(unaccounted_DF_Scatter)
 # Example dataset (you can skip this chunk if using your own data)
 data <- data.frame(unaccounted_DF_Scatter)
 
-#  popCounties = runif(100, 10000, 1000000),
-#  Decrease_unaccounted = runif(100, 0, 10000),
-#  State = sample(c("California", "Texas", "Florida", "New York", "Illinois"), 100, replace = TRUE)
+StateTeritory <- data[1]
 
-#State, Total_unaccounted_DF_Scatter, Total_StatePopulation  
-
+#State, Total_unaccounted_DF_Scatter, Total_StatePopulation 
 
 ggplot(data, aes(x = Total_unaccounted_DF_Scatter, y = Total_StatePopulation, color = State)) +
-  geom_point(alpha = 0.7, size = 3) +
+  geom_point(alpha = 0.7, size = 1) +
   labs(
     title = "Decrease in Unaccounted Cases vs County Population",
     x = "County Population (popCounties)",
     y = "Decrease in Unaccounted Cases",
-    color = "State/Territory"
-  ) #+ theme_minimal()
-
-
+    color = "State/Territory") + theme(
+    # Title alignment. Number from 0 (left) to 1 (right)
+    legend.title.align = 1,             
+    # Text label alignment. Number from 0 (left) to 1 (right)
+    legend.text.align = 0,
+    # Legend position: right, left, bottom, top, none
+    legend.position = "top", 
+    # Margin around each legend
+    legend.margin = margin(0.2, 0.2, 0.2, 0.2, "cm"),
+    # Layout of items in legends ("horizontal" or "vertical")
+    legend.direction = "horizontal", 
+    # Positioning legend inside or outside plot 
+    # ("center" or two-element numeric vector) 
+    legend.justification = "center", 
+    
+    legend.key.size = unit(1.2, "lines"),    # key size (unit)
+    legend.key.height = NULL,                # key height (unit)
+    legend.key.width = NULL,                 # key width (unit)
+    
+    legend.spacing = unit(0.4, "cm"), 
+    legend.spacing.x = NULL,                 # Horizontal spacing
+    legend.spacing.y = NULL,                 # Vertical spacing
+    
+    # Arrangement of multiple legends ("horizontal" or "vertical")
+    legend.box = NULL, 
+    # Margins around the full legend area
+    legend.box.margin = margin(0, 0, 0, 0, "cm"), 
+    # Background of legend area: element_rect()
+    legend.box.background = element_blank(), 
+    # The spacing between the plotting area and the legend box
+    legend.box.spacing = unit(1, "cm"))
 
 ```
