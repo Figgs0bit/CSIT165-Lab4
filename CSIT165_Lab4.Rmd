@@ -16,12 +16,12 @@ header-includes:
   - \usepackage{float}
   - \usepackage{colortbl}
   - \usepackage{pdflscape}
-#  - \usepackage{tabu}  #when tabu package enabled PDF won't knit
   - \usepackage{threeparttable}
   - \usepackage{threeparttablex}
   - \usepackage[normalem]{ulem}
   - \usepackage{makecell}
   - \usepackage{xcolor}
+#  - \usepackage{tabu}  #when tabu package enabled PDF won't knit
 #  - \usepackage{tidyverse}
 #  - \usepackage{kable}
 
@@ -41,16 +41,16 @@ library(geosphere)
 library(ggplot2)
 library(treemapify)
 library(tidyverse)
-#library(plyr)
-
+library(ggfittext)
+library(scales)
 library(dplyr)
-
 library(data.table)
 #library(kableExtra) #when kablextra library enabled PDF won't knit
-
+#library(ggtext)
+#library(treemap)
+#library(plyr)
 
 knitr::opts_chunk$set(echo=TRUE)
-
 ```
 
 
@@ -60,6 +60,8 @@ Confirmed_US <- as.data.frame(read.csv("https://raw.githubusercontent.com/CSSEGI
 
 #time_series_covid19_deaths_US.csv 1155 columns
 Deaths_US <- as.data.frame(read.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/refs/heads/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv"))
+
+PopDeaths_US <- data.frame(Deaths_US)
 
 popCounties <- Deaths_US[12]
 Deaths_US <- Deaths_US[, -which(names(Deaths_US) == "Population")]
@@ -212,11 +214,14 @@ current_tally <- tibble(current_tally)
 
 current_tally <- current_tally %>%
         mutate('unaccounted' = abs(Confirmed - Deaths))
-        
+
+#view(current_tally)        
+
 unaccounted_tally <- current_tally %>%
         group_by(State) %>%
         summarise(Total_unaccounted = sum(unaccounted))
 
+#view(unaccounted_tally)
 ```
 
 
@@ -229,9 +234,9 @@ using the code above, use the package kable and create a table showing the top 5
 ```{r ob4}
 # Display the top 5 states
 
-top5_unaccounted <- unaccounted_tally[order(unaccounted_tally$Total_unaccounted, decreasing = TRUE),] 
+Decrease_unaccounted <- unaccounted_tally[order(unaccounted_tally$Total_unaccounted, decreasing = TRUE),] 
 
-top5_unaccounted <- head(top5_unaccounted, 5)
+top5_unaccounted <- head(Decrease_unaccounted, 5)
 
 kable(top5_unaccounted, caption = "Top 5 States by Total Unaccounted COVID Cases")
 
@@ -241,27 +246,48 @@ kable(top5_unaccounted, caption = "Top 5 States by Total Unaccounted COVID Cases
 
 ### Objective 5
 *Create any visualization you like using the data sets used in this laboratory. Provide your visualization with a title and custom axis labels. Describe how this visualization conveys information that is not readily apparent from looking at the data alone.*
-```{r ob5}
 
-# Use built-in dataset: state.x77
-state_data <- as.data.frame(state.x77)
+```{r ob5 data}
 
-# Add state names as a column
-state_data$State <- rownames(state_data)
+DF_Scatter <- cbind(Confirmed_US[7],Confirmed_US[6],PopDeaths_US[12],Confirmed_US[colmax],Deaths_US[colmax])
+colnames(DF_Scatter) <- c("State","City","Population","Confirmed","Deaths")
 
-# Preview data
-head(state_data)
+#view(DF_Scatter)
+
+DF_Scatter <- DF_Scatter %>%
+        mutate('unaccounted' = abs(Confirmed - Deaths))
+
+#view(DF_Scatter)        
+
+unaccounted_DF_Scatter <- DF_Scatter %>%
+        group_by(State) %>% #, Population
+        summarise(Total_unaccounted_DF_Scatter = sum(unaccounted),Total_StatePopulation = sum(Population)) #, Total_StatePoplation = sum(Population)
+
+view(unaccounted_DF_Scatter)
+```
 
 
 
-treemap(state_data,
-        index = "State",             # Label by state
-        vSize = "Population",        # Size by population
-        title = "Population of U.S. States",
-        palette = "Blues",           # Color scheme
-        border.col = "white",        # Border color
-        fontsize.labels = 12,
-        fontcolor.labels = "black")
+
+```{r ob5 scatter}
+# Example dataset (you can skip this chunk if using your own data)
+data <- data.frame(unaccounted_DF_Scatter)
+
+#  popCounties = runif(100, 10000, 1000000),
+#  Decrease_unaccounted = runif(100, 0, 10000),
+#  State = sample(c("California", "Texas", "Florida", "New York", "Illinois"), 100, replace = TRUE)
+
+#State, Total_unaccounted_DF_Scatter, Total_StatePopulation  
+
+
+ggplot(data, aes(x = Total_unaccounted_DF_Scatter, y = Total_StatePopulation, color = State)) +
+  geom_point(alpha = 0.7, size = 3) +
+  labs(
+    title = "Decrease in Unaccounted Cases vs County Population",
+    x = "County Population (popCounties)",
+    y = "Decrease in Unaccounted Cases",
+    color = "State/Territory"
+  ) #+ theme_minimal()
 
 
 
